@@ -2,39 +2,46 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
-
 
 driver = webdriver.Chrome()
-driver.get("https://icp.administracionelectronica.gob.es/icpplustieb/citar?p=8&locale=es")
 
-search_box = driver.find_element(By.ID, "buscadorProvinciasInput")
-search_box.send_keys("Barcelona")
-search_button = driver.find_element(By.ID, "btnAceptar")
+driver.get('https://icp.administracionelectronica.gob.es/icpplustieb/citar?p=8&locale=es')
+
+wait = WebDriverWait(driver, 10)
+search_box = wait.until(EC.presence_of_element_located((By.ID, "buscadorProvinciasInput")))
+
+search_box.send_keys('Barcelona')
+search_button = driver.find_element(By.XPATH, "//button[@class='btn btn-primary']")
 search_button.click()
 
-try:
-    available_slots = WebDriverWait(driver, 10).until(
-        EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".disp-fc-slot.libres a")))
-    for slot in available_slots:
-        if "Sita Asulim" in slot.text:
-            slot.click()
-            name_box = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
-            name_box.send_keys("Kirill")
-            surname_box = driver.find_element(By.ID, "txtApeCitado")
-            surname_box.send_keys("Strelnikov")
-            passport_box = driver.find_element(By.ID, "txtNumDocCitado")
-            passport_box.send_keys("2204435971")
-            city_box = driver.find_element(By.ID, "txtDesCitado")
-            city_box.send_keys("Barcelona")
-            request_button = driver.find_element(By.ID, "btnEnviar")
-            request_button.click()
-            print("Успешно записались на прием!")
-            break
-    else:
-        print("Свободных слотов для записи не найдено!")
-except:
-    print("Не удалось найти свободные слоты!")
+wait.until(EC.title_contains('Barcelona'))
+
+office_button = driver.find_element(By.XPATH, "//a[@title='Barcelona - Horta - Guinardó']")
+office_button.click()
+
+wait.until(EC.title_contains('Cita previa para trámites DGT'))
+
+appointment_button = driver.find_element(By.XPATH, "//a[@title='Solicitar Cita Previa']")
+appointment_button.click()
+
+name_field = driver.find_element(By.ID, "txtIdCitado1")
+name_field.send_keys("Kirill")
+
+last_name_field = driver.find_element(By.ID, "txtIdCitado2")
+last_name_field.send_keys("Strelnikov")
+
+document_field = driver.find_element(By.ID, "txtIdCitado3")
+document_field.send_keys("2204435971")
+
+
+available_slots = driver.find_elements(By.XPATH, "//span[@class='fc-title']")
+for slot in available_slots:
+    if slot.text == "Libre":
+        slot.click()
+        break
+
+confirm_button = driver.find_element(By.XPATH, "//button[@class='btn btn-primary btn-sm']")
+confirm_button.click()
+
 
 driver.quit()
-
